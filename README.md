@@ -57,7 +57,7 @@
 <button id="yes" class="btn">Yes</button>
 <button id="no" class="btn">No</button>
 
-<h1>No! Button is bit say....☺️</h1>
+<h6>No! Button is bit say....☺️</h6>
 
 <div id="result">
     <p>Yea! Good choice 😍</p>
