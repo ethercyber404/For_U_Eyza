@@ -57,16 +57,15 @@ button{
 
 <body>
 
+<!-- 🎵 Hidden Music Player -->
 <iframe
-  width="360"
-  height="640"
-  src="https://www.youtube.com/embed/MC-zIlalJJE"
-  title="YouTube Shorts"
+  id="music"
+  width="0"
+  height="0"
+  src=""
   frameborder="0"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-  allowfullscreen>
+  allow="autoplay">
 </iframe>
-
 
 <!-- Intro -->
 <div id="intro" class="screen">
@@ -84,7 +83,7 @@ button{
 
 <!-- Question -->
 <div id="question" class="screen">
-    <h1>Will you be my Valentine?! Papi😁 💖</h1>
+    <h1>Will you be my Valentine?! Papi 😁 💖</h1>
     <button id="yes">Yes 💘</button>
     <button id="no">No 😜</button>
 </div>
@@ -99,9 +98,9 @@ button{
 
 function start(){
 
-    // 🔊 Unmute music after user click
+    // 🎵 Play YouTube Shorts music after click
     document.getElementById("music").src =
-    "https://www.youtube.com/embed/2Vv-BfVoq4g?autoplay=1&loop=1&playlist=2Vv-BfVoq4g";
+    "https://www.youtube.com/embed/MC-zIlalJJE?autoplay=1&loop=1&playlist=MC-zIlalJJE";
 
     document.getElementById("intro").style.display="none";
     document.getElementById("loading").style.display="block";
@@ -159,4 +158,5 @@ function launchHearts(){
 
 </body>
 </html>
+
 
