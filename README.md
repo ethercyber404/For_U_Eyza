@@ -27,11 +27,11 @@ canvas.height = 600;
 
 // ===== IMAGE =====
 const birdImg = new Image();
-birdImg.src = "Alamin.png"; // তোমার ছবি
+birdImg.src = "Alamin.png";
 
 // ===== SOUNDS =====
 const tapSound = new Audio("tap.mp3");
-const gameOverSound = new Audio("gameover.mp3");
+const gameOverSound = new Audio("tap.mp3");
 
 // ===== BIRD =====
 let bird = {
