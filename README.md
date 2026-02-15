@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -35,9 +34,9 @@
 
 <script>
 // ===== CONFIG =====
-const birdImageSrc = "bird.png"; // তোমার ছবি
-const flapSoundSrc = "flap.mp3"; // ট্যাপ sound
-const hitSoundSrc = "hit.mp3";   // গেম over sound
+//const birdImageSrc = "bird.png"; // তোমার ছবি
+//const flapSoundSrc = "flap.mp3"; // ট্যাপ sound
+//const hitSoundSrc = "hit.mp3";   // গেম over sound
 
 // ===== GAME VARIABLES =====
 const canvas = document.getElementById("gameCanvas");
