@@ -1,174 +1,129 @@
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>tHeEtHeR</title>
-
+<title>Custom Flappy Bird</title>
 <style>
-body{
-    margin:0;
-    overflow:hidden;
-    background:#70c5ce;
-}
-canvas{
-    display:block;
-    margin:auto;
-}
+  body {
+    margin: 0;
+    background: skyblue;
+    overflow: hidden;
+    text-align: center;
+    font-family: sans-serif;
+  }
+  canvas {
+    background: linear-gradient(#87CEEB, #fff);
+    display: block;
+    margin: 0 auto;
+  }
 </style>
 </head>
 <body>
 
-<canvas id="gameCanvas"></canvas>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
 
 <script>
+// ====== CONFIG ======
+const birdImageSrc = "bird.png"; // এখানে তোমার ছবি নাম দাও
+const flapSoundSrc = "flap.mp3"; // ট্যাপ করলে বাজবে
+const hitSoundSrc = "hit.mp3";   // গেম শেষ হলে বাজবে
+
+// ====== GAME VARIABLES ======
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 400;
-canvas.height = 600;
-
-// ===== IMAGE =====
-const birdImg = new Image();
-birdImg.src = "Alamin.png";
-
-// ===== SOUNDS =====
-const tapSound = new Audio("tap.mp3");
-const gameOverSound = new Audio("gameover.mp3");
-
-// ===== BIRD =====
-let bird = {
-    x: 80,
-    y: 200,
-    width: 60,
-    height: 60,
-    gravity: 0.5,
-    lift: -9,
-    velocity: 0
-};
-
-// ===== PIPES =====
+let bird = { x: 80, y: 300, width: 40, height: 40, gravity: 0.6, lift: -10, velocity: 0 };
 let pipes = [];
-let pipeWidth = 60;
-let gap = 160;
 let frame = 0;
 let score = 0;
 let gameOver = false;
 
-// ===== CONTROLS =====
+// ====== LOAD ASSETS ======
+const birdImg = new Image();
+birdImg.src = birdImageSrc;
+
+const flapSound = new Audio(flapSoundSrc);
+const hitSound = new Audio(hitSoundSrc);
+
+// ====== PIPE FUNCTIONS ======
+function createPipe() {
+  const topHeight = Math.random() * 200 + 50;
+  const gap = 150;
+  pipes.push({ x: canvas.width, y: 0, width: 50, height: topHeight });
+  pipes.push({ x: canvas.width, y: topHeight + gap, width: 50, height: canvas.height - (topHeight + gap) });
+}
+
+// ====== GAME LOOP ======
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw bird
+  ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+
+  // Bird physics
+  bird.velocity += bird.gravity;
+  bird.y += bird.velocity;
+
+  // Draw pipes
+  for (let i = 0; i < pipes.length; i++) {
+    let p = pipes[i];
+    ctx.fillStyle = "green";
+    ctx.fillRect(p.x, p.y, p.width, p.height);
+
+    // Move pipes
+    p.x -= 2;
+
+    // Collision
+    if (bird.x + bird.width > p.x && bird.x < p.x + p.width &&
+        bird.y + bird.height > p.y && bird.y < p.y + p.height) {
+      gameOver = true;
+    }
+
+    // Score
+    if (!p.scored && p.x + p.width < bird.x) {
+      score++;
+      p.scored = true;
+    }
+  }
+
+  // New pipe
+  if (frame % 90 === 0) createPipe();
+
+  // Score
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 10, 30);
+
+  // Check game over
+  if (bird.y + bird.height > canvas.height || bird.y < 0) gameOver = true;
+
+  if (gameOver) {
+    hitSound.play();
+    ctx.fillStyle = "red";
+    ctx.font = "40px Arial";
+    ctx.fillText("GAME OVER", 80, canvas.height / 2);
+    return;
+  }
+
+  frame++;
+  requestAnimationFrame(draw);
+}
+
+// ====== CONTROLS ======
+document.addEventListener("keydown", flap);
 document.addEventListener("click", flap);
-document.addEventListener("touchstart", flap);
 
-function flap(){
-    if(gameOver){
-        location.reload();
-    } else {
-        bird.velocity = bird.lift;
-        tapSound.currentTime = 0;
-        tapSound.play();
-    }
+function flap() {
+  bird.velocity = bird.lift;
+  flapSound.play();
 }
 
-// ===== DRAW BIRD =====
-function drawBird(){
-    if(!birdImg.complete) return;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(bird.x + bird.width/2, bird.y + bird.height/2, 30, 0, Math.PI*2);
-    ctx.closePath();
-    ctx.clip();
-    ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
-    ctx.restore();
-}
-
-// ===== DRAW PIPES =====
-function drawPipes(){
-    pipes.forEach(pipe => {
-        ctx.fillStyle = "#2ecc71";
-        ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
-        ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, canvas.height - pipe.bottom);
-    });
-}
-
-// ===== UPDATE =====
-function update(){
-    if(gameOver) return;
-
-    frame++;
-
-    if(frame % 100 === 0){
-        let top = Math.random() * 300 + 50;
-        pipes.push({
-            x: canvas.width,
-            top: top,
-            bottom: top + gap
-        });
-    }
-
-    bird.velocity += bird.gravity;
-    bird.y += bird.velocity;
-
-    pipes.forEach(pipe => {
-        pipe.x -= 2;
-
-        if(
-            bird.x < pipe.x + pipeWidth &&
-            bird.x + bird.width > pipe.x &&
-            (bird.y < pipe.top || bird.y + bird.height > pipe.bottom)
-        ){
-            endGame();
-        }
-    });
-
-    pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
-
-    if(bird.y + bird.height >= canvas.height || bird.y <= 0){
-        endGame();
-    }
-
-    score++;
-}
-
-// ===== END GAME =====
-function endGame(){
-    if(!gameOver){
-        gameOver = true;
-        gameOverSound.play();
-    }
-}
-
-// ===== DRAW =====
-function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    drawBird();
-    drawPipes();
-
-    ctx.fillStyle="white";
-    ctx.font="25px Arial";
-    ctx.fillText("Score: " + Math.floor(score/10), 10, 40);
-
-    if(gameOver){
-        ctx.font="35px Arial";
-        ctx.fillText("GAME OVER", 90, 300);
-        ctx.font="20px Arial";
-        ctx.fillText("Tap to Restart", 130, 340);
-    }
-}
-
-// ===== GAME LOOP =====
-function gameLoop(){
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
-// Image load হলে game start হবে
-birdImg.onload = function(){
-    gameLoop();
-};
+// ====== START GAME ======
+draw();
 </script>
 
 </body>
 </html>
+
 
 
 
