@@ -1,154 +1,158 @@
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>For Neela 💖</title>
-
+<title>Iftikhar Flappy Game</title>
 <style>
 body{
     margin:0;
-    font-family: 'Poppins', sans-serif;
-    text-align:center;
-    background: linear-gradient(135deg,#ff9ec4,#ffcce6);
     overflow:hidden;
+    background:#70c5ce;
 }
-
-.screen{
-    display:none;
-    padding-top:120px;
-    color:white;
-}
-
-button{
-    padding:15px 30px;
-    font-size:22px;
-    border:none;
-    border-radius:30px;
-    cursor:pointer;
-    margin:20px;
-    transition:.3s;
-}
-
-#intro{ display:block; }
-
-#no{
-    position:absolute;
-    background:gray;
-    color:white;
-}
-
-#yes{
-    background:#ff4d88;
-    color:white;
-}
-
-.heart{
-    position:absolute;
-    animation: float 5s linear infinite;
-    z-index:999;
-}
-
-@keyframes float{
-    0%{transform:translateY(100vh);opacity:1;}
-    100%{transform:translateY(-10vh);opacity:0;}
+canvas{
+    display:block;
+    margin:auto;
 }
 </style>
 </head>
-
 <body>
 
-<iframe
-  id="music"
-  width="0"
-  height="0"
-  src=""
-  frameborder="0"
-  allow="autoplay">
-</iframe>
-
-<div id="intro" class="screen">
-    <h1>Hey Neela☺️</h1>
-   <!-- <h1>Hlw CD khanbashi 💌</h1>
-    <h6>তোর জন্য ওয়েব ডিজাইন শেখা লাগলো...</h6>
-    <p>I have something special for you...</p>-->
-    <button onclick="start()">Click Here 💖</button>
-</div>
-
-<div id="loading" class="screen">
-    <h1>Checking Our Love Compatibility... 💞</h1>
-    <h2 id="percent">0%</h2>
-</div>
-
-<div id="question" class="screen">
-    <h1>Will you be my Valentine?!😁💖</h1>
-    <button id="yes">Yes 😍</button>
-    <button id="no">No! 😌</button>
-    <h6>Hints : The No! button is a Bit Say...🙈</h6>
-</div>
-
-<div id="final" class="screen">
-    <h1>Yea! Good choice!! 😍💞</h1>
-    <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" width="250">
-</div>
+<canvas id="gameCanvas"></canvas>
 
 <script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-function start(){
+canvas.width = 400;
+canvas.height = 600;
 
-    document.getElementById("music").src =
-    "https://www.youtube.com/embed/MC-zIlalJJE?autoplay=1&loop=1&playlist=MC-zIlalJJE";
+// ===== IMAGE =====
+const birdImg = new Image();
+birdImg.src = "mybird.png"; // তোমার ছবি
 
-    document.getElementById("intro").style.display="none";
-    document.getElementById("loading").style.display="block";
+// ===== SOUNDS =====
+const tapSound = new Audio("tap.mp3");
+const gameOverSound = new Audio("gameover.mp3");
 
-    let percent = 0;
-    let interval = setInterval(()=>{
-        percent++;
-        document.getElementById("percent").innerText = percent + "%";
+// ===== BIRD =====
+let bird = {
+    x: 80,
+    y: 200,
+    width: 60,
+    height: 60,
+    gravity: 0.5,
+    lift: -9,
+    velocity: 0
+};
 
-        if(percent >= 100){
-            clearInterval(interval);
-            showQuestion();
-        }
-    },30);
-}
+// ===== PIPES =====
+let pipes = [];
+let pipeWidth = 60;
+let gap = 160;
+let frame = 0;
+let score = 0;
+let gameOver = false;
 
-function showQuestion(){
-    document.getElementById("loading").style.display="none";
-    document.getElementById("question").style.display="block";
-}
+document.addEventListener("click", flap);
+document.addEventListener("touchstart", flap);
 
-let noBtn = document.getElementById("no");
-let yesBtn = document.getElementById("yes");
-let size = 22;
-
-noBtn.addEventListener("mouseover", function(){
-    let x = Math.random()*(window.innerWidth-120);
-    let y = Math.random()*(window.innerHeight-120);
-    noBtn.style.left = x+"px";
-    noBtn.style.top = y+"px";
-
-    size += 5;
-    yesBtn.style.fontSize = size+"px";
-});
-
-yesBtn.addEventListener("click", function(){
-    document.getElementById("question").style.display="none";
-    document.getElementById("final").style.display="block";
-    launchHearts();
-});
-
-function launchHearts(){
-    for(let i=0;i<50;i++){
-        let heart=document.createElement("div");
-        heart.classList.add("heart");
-        heart.innerHTML="💖";
-        heart.style.left=Math.random()*100+"vw";
-        heart.style.fontSize=(20+Math.random()*30)+"px";
-        document.body.appendChild(heart);
-        setTimeout(()=>heart.remove(),5000);
+function flap(){
+    if(gameOver){
+        location.reload();
+    } else {
+        bird.velocity = bird.lift;
+        tapSound.currentTime = 0;
+        tapSound.play();
     }
 }
 
+function drawBird(){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(bird.x + bird.width/2, bird.y + bird.height/2, 30, 0, Math.PI*2);
+    ctx.closePath();
+    ctx.clip(); // circle crop effect
+    ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+    ctx.restore();
+}
+
+function drawPipes(){
+    pipes.forEach(pipe => {
+        ctx.fillStyle = "#2ecc71";
+        ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
+        ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, canvas.height - pipe.bottom);
+    });
+}
+
+function update(){
+    if(gameOver) return;
+
+    frame++;
+
+    if(frame % 100 === 0){
+        let top = Math.random() * 300 + 50;
+        pipes.push({
+            x: canvas.width,
+            top: top,
+            bottom: top + gap
+        });
+    }
+
+    bird.velocity += bird.gravity;
+    bird.y += bird.velocity;
+
+    pipes.forEach(pipe => {
+        pipe.x -= 2;
+
+        if(
+            bird.x < pipe.x + pipeWidth &&
+            bird.x + bird.width > pipe.x &&
+            (bird.y < pipe.top || bird.y + bird.height > pipe.bottom)
+        ){
+            endGame();
+        }
+    });
+
+    pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
+
+    if(bird.y + bird.height >= canvas.height || bird.y <= 0){
+        endGame();
+    }
+
+    score++;
+}
+
+function endGame(){
+    if(!gameOver){
+        gameOver = true;
+        gameOverSound.play();
+    }
+}
+
+function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawBird();
+    drawPipes();
+
+    ctx.fillStyle="white";
+    ctx.font="25px Arial";
+    ctx.fillText("Score: " + Math.floor(score/10), 10, 40);
+
+    if(gameOver){
+        ctx.font="35px Arial";
+        ctx.fillText("GAME OVER", 90, 300);
+        ctx.font="20px Arial";
+        ctx.fillText("Tap to Restart", 130, 340);
+    }
+}
+
+function gameLoop(){
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
 </script>
 
 </body>
